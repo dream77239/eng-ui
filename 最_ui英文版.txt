@@ -1,0 +1,698 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+
+local blur = Instance.new("BlurEffect")
+blur.Size = 0
+blur.Parent = Lighting
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.Name = "IntroEffect"
+screenGui.Parent = playerGui
+
+local background = Instance.new("Frame")
+background.Size = UDim2.new(1, 0, 1, 0)
+background.BackgroundColor3 = Color3.new(0, 0, 0)
+background.BackgroundTransparency = 0.95
+background.Parent = screenGui
+
+local image = Instance.new("ImageLabel")
+image.Size = UDim2.new(0, 100, 0, 100)
+image.Position = UDim2.new(0.5, -50, 0.14, 0)
+image.Image = "rbxassetid://135527704198851"
+image.BackgroundTransparency = 1
+image.ImageTransparency = 1
+image.Parent = screenGui
+
+local labelMain = Instance.new("TextLabel")
+labelMain.Size = UDim2.new(1, 0, 0.2, 0)
+labelMain.Position = UDim2.new(0, 0, 0.35, 0)
+labelMain.Text = "Welcome to Kanl Script"
+labelMain.TextTransparency = 1
+labelMain.TextScaled = false
+labelMain.Font = Enum.Font.GothamBlack
+labelMain.TextSize = 36
+labelMain.TextColor3 = Color3.new(1, 1, 1)
+labelMain.BackgroundTransparency = 1
+labelMain.Parent = screenGui
+
+local labelSub = Instance.new("TextLabel")
+labelSub.Size = UDim2.new(1, 0, 0.1, 0)
+labelSub.Position = UDim2.new(0, 0, 0.48, 0)
+labelSub.Text = "Your support drives my updates"
+labelSub.TextTransparency = 1
+labelSub.TextScaled = false
+labelSub.Font = Enum.Font.Gotham
+labelSub.TextSize = 26
+labelSub.TextColor3 = Color3.new(1, 1, 1)
+labelSub.BackgroundTransparency = 1
+labelSub.Parent = screenGui
+
+TweenService:Create(blur, TweenInfo.new(0.8), {Size = 8}):Play()
+task.wait(0.8)
+TweenService:Create(image, TweenInfo.new(1), {ImageTransparency = 0}):Play()
+TweenService:Create(labelMain, TweenInfo.new(1), {TextTransparency = 0}):Play()
+TweenService:Create(labelSub, TweenInfo.new(1), {TextTransparency = 0}):Play()
+task.wait(2)
+TweenService:Create(image, TweenInfo.new(1), {ImageTransparency = 1}):Play()
+TweenService:Create(labelMain, TweenInfo.new(1), {TextTransparency = 1}):Play()
+TweenService:Create(labelSub, TweenInfo.new(1), {TextTransparency = 1}):Play()
+task.wait(1.2)
+TweenService:Create(blur, TweenInfo.new(0.8), {Size = 0}):Play()
+task.wait(1.2)
+
+screenGui:Destroy()
+blur:Destroy()
+
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local Window = WindUI:CreateWindow({
+    Title = "Kanl Ultimate Battleground",
+    Icon = "book",
+    IconThemed = true,
+    Author = "这个英文脚本,不是给国人用的",
+    Folder = "CloudHub",
+    Size = UDim2.fromOffset(500, 400),
+    Transparent = true,
+    Theme = "Light",
+    User = {
+        Enabled = true,
+        Callback = function() end,
+        Anonymous = true
+    },
+    SideBarWidth = 200,
+    ScrollBarEnabled = true
+})
+
+local Tab = Window:Tab({
+    Title = "Important Notes",
+    Icon = "house",
+    Locked = false,
+})
+
+Tab:Paragraph({
+    Title = "Please read carefully",
+    Desc = "Do not use Kanl script to attack teammates. Do not start internal conflicts. I am not responsible for resolving issues caused by misuse. People using my Ultimate Battlefield script to profit unfairly will face consequences. Note: Knockdown effect is local only and does not affect other players.",
+    Image = "file-warning",
+    Color = "Red",
+    ImageSize = 40,
+    ThumbnailSize = 120
+})
+
+Tab:Paragraph({
+    Title = "",
+    Desc = "",
+    Image = "",
+    ImageSize = 30,
+    Thumbnail = "rbxassetid://84800031267883",
+    ThumbnailSize = 180
+})
+
+local Tab = Window:Tab({
+    Title = "Features",
+    Icon = "sword",
+    Locked = false,
+})
+
+-- Fake Block
+local fakeBlockEnabled = false
+local loopRunning = false
+
+Tab:Toggle({
+    Title = "Fake Block (Toggle once after turning off to reset)",
+    Value = false,
+    Callback = function(state)
+        fakeBlockEnabled = state
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local BlockRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Combat"):WaitForChild("Block")
+        local player = Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local function enableBlock()
+            pcall(function()
+                BlockRemote:FireServer(true)
+            end)
+        end
+        if fakeBlockEnabled then enableBlock() end
+        if not loopRunning then
+            loopRunning = true
+            task.spawn(function()
+                while true do
+                    task.wait(0.01)
+                    if fakeBlockEnabled then
+                        local success, isBlocking = pcall(function()
+                            return character:GetAttribute("IsBlocking")
+                        end)
+                        if success and not isBlocking then enableBlock() end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+-- Dash Cooldown
+local defaultCooldown = game:GetService("ReplicatedStorage").Settings.Cooldowns.Dash.Value
+Tab:Toggle({
+    Title = "No Dash Cooldown",
+    Value = false,
+    Callback = function(state)
+        local dashCooldown = game:GetService("ReplicatedStorage").Settings.Cooldowns.Dash
+        dashCooldown.Value = state and 1 or defaultCooldown
+    end
+})
+
+-- Melee Cooldown
+local defaultMeleeCooldown = game:GetService("ReplicatedStorage").Settings.Cooldowns.Melee.Value
+Tab:Toggle({
+    Title = "No Melee Cooldown",
+    Value = false,
+    Callback = function(state)
+        local meleeCooldown = game:GetService("ReplicatedStorage").Settings.Cooldowns.Melee
+        meleeCooldown.Value = state and 1 or defaultMeleeCooldown
+    end
+})
+
+-- Ability Cooldown
+local settings = game:GetService("ReplicatedStorage").Settings
+local defaultAbility = settings.Cooldowns.Ability.Value
+Tab:Toggle({
+    Title = "No Ability Cooldown (Only Sukuna)",
+    Value = false,
+    Callback = function(state)
+        settings.Cooldowns.Ability.Value = state and 1 or defaultAbility
+    end
+})
+
+-- No Slowdowns
+local noSlowdownsToggle = settings.Toggles.NoSlowdowns
+local defaultNoSlowdowns = false
+Tab:Toggle({
+    Title = "No Slowdowns",
+    Value = noSlowdownsToggle.Value,
+    Callback = function(state)
+        noSlowdownsToggle.Value = state and true or defaultNoSlowdowns
+    end
+})
+
+-- Disable Hit Stun
+local defaultDisableHitStun = settings.Toggles.DisableHitStun.Value
+Tab:Toggle({
+    Title = "Disable Hit Stun",
+    Value = false,
+    Callback = function(state)
+        settings.Toggles.DisableHitStun.Value = state
+    end
+})
+
+-- Skip Intros
+local defaultDisableIntros = settings.Toggles.DisableIntros.Value
+Tab:Toggle({
+    Title = "Skip Character Intros",
+    Value = false,
+    Callback = function(state)
+        settings.Toggles.DisableIntros.Value = state
+    end
+})
+
+-- No Stun On Miss
+local defaultNoStunOnMiss = settings.Toggles.NoStunOnMiss.Value
+Tab:Toggle({
+    Title = "No Stun on Normal Attack",
+    Value = false,
+    Callback = function(state)
+        settings.Toggles.NoStunOnMiss.Value = state
+    end
+})
+
+-- Ragdoll Timer
+local defaultRagdollTimer = settings.Multipliers.RagdollTimer.Value
+Tab:Toggle({
+    Title = "Cannot be ragdolled by others",
+    Value = false,
+    Callback = function(state)
+        settings.Multipliers.RagdollTimer.Value = state and 0.5 or defaultRagdollTimer
+    end
+})
+
+-- Extend Ultimate Timer
+local defaultUltimateTimer = settings.Multipliers.UltimateTimer.Value
+Tab:Toggle({
+    Title = "Extend Ultimate Duration",
+    Value = false,
+    Callback = function(state)
+        settings.Multipliers.UltimateTimer.Value = state and 100000 or defaultUltimateTimer
+    end
+})
+
+-- Instant Transformation
+local defaultInstantTransformation = settings.Toggles.InstantTransformation.Value
+Tab:Toggle({
+    Title = "Instant Ultimate",
+    Value = false,
+    Callback = function(state)
+        settings.Toggles.InstantTransformation.Value = state
+    end
+})
+
+-- Melee Punch Ragdoll / Launch
+local meleeModule = require(game:GetService("ReplicatedStorage").Shared.Melee)
+local originalEvents = {}
+for name, event in pairs(meleeModule.Events) do
+    if string.find(name, "Punch") then
+        originalEvents[name] = {
+            Actions = event.Actions,
+            Damage = event.Damage,
+            Sound = event.Sound
+        }
+    end
+end
+
+Tab:Toggle({
+    Title = "Punch Knockdown",
+    Value = false,
+    Callback = function(state)
+        if state then
+            for name, event in pairs(meleeModule.Events) do
+                if string.find(name, "Punch") then
+                    event.Actions = {{
+                        Action = "Ragdoll",
+                        Settings = {
+                            ForwardVelocity = 1,
+                            UpVelocity = 0.5,
+                            RotVelocity = 0,
+                            Gravity = 200000,
+                            Duration = 2
+                        }
+                    }}
+                    event.Damage = 10
+                    event.Sound = "Hit4"
+                end
+            end
+        else
+            for name, event in pairs(meleeModule.Events) do
+                if originalEvents[name] then
+                    event.Actions = originalEvents[name].Actions
+                    event.Damage = originalEvents[name].Damage
+                    event.Sound = originalEvents[name].Sound
+                end
+            end
+        end
+    end
+})
+
+Tab:Toggle({
+    Title = "Punch Launch",
+    Value = false,
+    Callback = function(state)
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local RunService = game:GetService("RunService")
+        local LocalPlayer = Players.LocalPlayer
+        local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+        local RagdollPower = ReplicatedStorage.Settings.Multipliers.RagdollPower
+        local maxTeleportDistance = 50
+        local lastPosition = HumanoidRootPart.Position
+        local connection
+        if state then
+            RagdollPower.Value = 10000
+            connection = RunService.RenderStepped:Connect(function()
+                if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+                    lastPosition = HumanoidRootPart.Position
+                end
+                local currentPos = HumanoidRootPart.Position
+                local distance = (currentPos - lastPosition).Magnitude
+                if distance > maxTeleportDistance then
+                    HumanoidRootPart.CFrame = CFrame.new(lastPosition)
+                else
+                    lastPosition = currentPos
+                end
+            end)
+        else
+            RagdollPower.Value = 100
+            if connection then connection:Disconnect() end
+        end
+    end
+})
+
+-- WallCombo Cooldown
+local wallCombo = game:GetService("ReplicatedStorage").Settings.Cooldowns.WallCombo
+Tab:Toggle({
+    Title = "No WallCombo Cooldown",
+    Value = false,
+    Callback = function(state)
+        wallCombo.Value = state and 0 or 100
+    end
+})
+
+-- Followable structure example
+local structure = workspace.Map.Props.Structures:GetChildren()[11]:GetChildren()[4]
+structure.Size = Vector3.new(12, 8, 2)
+structure.Anchored = true
+structure.CanCollide = true
+
+local following = false
+local followConnection = nil
+local hrp = nil
+
+local function getHRP()
+	local character = player.Character or player.CharacterAdded:Wait()
+	return character:WaitForChild("HumanoidRootPart")
+end
+
+local function startFollowing()
+	hrp = getHRP()
+	followConnection = game:GetService("RunService").RenderStepped:Connect(function()
+		if hrp and hrp.Parent then
+			structure.CFrame = hrp.CFrame * CFrame.new(0, 0, -10)
+		end
+	end)
+end
+
+local function stopFollowing()
+	if followConnection then followConnection:Disconnect() followConnection = nil end
+end
+
+Tab:Toggle({
+	Title = "Place Wall Anywhere",
+	Value = false,
+	Callback = function(state)
+		following = state
+		if state then startFollowing() else stopFollowing() end
+	end
+})
+
+-- Multi-use ultimate (all characters)
+local multiUseCutscenesToggle = game:GetService("ReplicatedStorage").Settings.Toggles.MultiUseCutscenes
+local defaultMultiUse = false
+Tab:Toggle({
+    Title = "Multi-use Ultimate (All Characters)",
+    Value = multiUseCutscenesToggle.Value,
+    Callback = function(state)
+        multiUseCutscenesToggle.Value = state and true or defaultMultiUse
+    end
+})
+
+-- Sliders
+Tab:Slider({
+    Title = "Dash Speed (default 100)",
+    Value = {Min = 0, Max = 1000, Default = 100},
+    Callback = function(value)
+        game:GetService("ReplicatedStorage").Settings.Multipliers.DashSpeed.Value = value
+    end
+})
+Tab:Slider({
+    Title = "Jump Height (default 100)",
+    Value = {Min = 0, Max = 1000, Default = 100},
+    Callback = function(value)
+        game:GetService("ReplicatedStorage").Settings.Multipliers.JumpHeight.Value = value
+    end
+})
+Tab:Slider({
+    Title = "Melee Speed (default 100)",
+    Value = {Min = 0, Max = 1000, Default = 100},
+    Callback = function(value)
+        game:GetService("ReplicatedStorage").Settings.Multipliers.MeleeSpeed.Value = value
+    end
+})
+
+local LockTab = Window:Tab({
+    Title = "Target Lock",
+    Icon = "target",
+    Locked = false,
+})
+
+local Players    = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local localPlayer = Players.LocalPlayer
+
+local BEHIND_DISTANCE = 5
+
+local followEnabled   = false
+local circleEnabled   = false
+local lookEnabled     = false
+
+local selectedTargetName = nil
+
+local followConnection  = nil
+local circleConnection  = nil
+local lookConnection    = nil
+
+local circleRadius = 6
+local circleSpeed  = 13
+local circleAngle  = 0
+
+local function getHRP(player)
+    if player and player.Character then
+        return player.Character:FindFirstChild("HumanoidRootPart")
+    end
+end
+
+local function getPlayerByName(name)
+    for _, p in pairs(Players:GetPlayers()) do
+        if p.Name == name then
+            return p
+        end
+    end
+end
+
+local function startFollow()
+    followConnection = RunService.RenderStepped:Connect(function()
+        if not followEnabled then return end
+        local myHRP   = getHRP(localPlayer)
+        local target  = getPlayerByName(selectedTargetName)
+        local targetHRP = target and getHRP(target)
+        if myHRP and targetHRP then
+            local pos = targetHRP.Position - targetHRP.CFrame.LookVector * BEHIND_DISTANCE
+            myHRP.CFrame = CFrame.new(pos.X, targetHRP.Position.Y, pos.Z)
+        end
+    end)
+end
+
+local function startCircle()
+    circleConnection = RunService.RenderStepped:Connect(function(dt)
+        if not circleEnabled then return end
+        local myHRP   = getHRP(localPlayer)
+        local target  = getPlayerByName(selectedTargetName)
+        local targetHRP = target and getHRP(target)
+        if myHRP and targetHRP then
+            circleAngle = circleAngle + circleSpeed * dt
+            local x = math.cos(circleAngle) * circleRadius
+            local z = math.sin(circleAngle) * circleRadius
+            local p = targetHRP.Position + Vector3.new(x, 0, z)
+            myHRP.CFrame = CFrame.new(p.X, targetHRP.Position.Y, p.Z)
+        end
+    end)
+end
+
+local function startLook()
+    lookConnection = RunService.RenderStepped:Connect(function()
+        if not lookEnabled then return end
+        local myHRP   = getHRP(localPlayer)
+        local target  = getPlayerByName(selectedTargetName)
+        local targetHRP = target and getHRP(target)
+        if myHRP and targetHRP then
+            local myPos = myHRP.Position
+            local tp    = targetHRP.Position
+            myHRP.CFrame = CFrame.new(myPos, Vector3.new(tp.X, myPos.Y, tp.Z))
+        end
+    end)
+end
+
+local function stopConnections()
+    if followConnection then followConnection:Disconnect() end
+    if circleConnection then circleConnection:Disconnect() end
+    if lookConnection   then lookConnection:Disconnect()   end
+    followConnection = nil
+    circleConnection = nil
+    lookConnection   = nil
+    circleAngle      = 0
+end
+
+local playerDropdown = LockTab:Dropdown({
+    Title = "Select Target Player",
+    Multi = false,
+    AllowNone = false,
+    Value = nil,
+    Values = (function()
+        local names = {}
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= localPlayer then
+                table.insert(names, p.Name)
+            end
+        end
+        return names
+    end)(),
+    Callback = function(name)
+        selectedTargetName = name
+    end
+})
+
+LockTab:Button({
+    Title = "Refresh Player List",
+    Callback = function()
+        selectedTargetName = nil
+        playerDropdown:Destroy()
+        playerDropdown = LockTab:Dropdown({
+            Title = "Select Target Player",
+            Multi = false,
+            AllowNone = false,
+            Value = nil,
+            Values = (function()
+                local names = {}
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= localPlayer then
+                        table.insert(names, p.Name)
+                    end
+                end
+                return names
+            end)(),
+            Callback = function(name)
+                selectedTargetName = name
+            end
+        })
+    end
+})
+
+LockTab:Toggle({
+    Title = "Follow Behind",
+    Value = false,
+    Callback = function(state)
+        followEnabled = state
+        if state and not followConnection then startFollow() end
+        if not state then stopConnections() end
+    end
+})
+
+LockTab:Toggle({
+    Title = "Circle Around",
+    Value = false,
+    Callback = function(state)
+        circleEnabled = state
+        if state and not circleConnection then startCircle() end
+        if not state then stopConnections() end
+    end
+})
+
+LockTab:Toggle({
+    Title = "Look At Player (Requires No-Shift Lock)",
+    Value = false,
+    Callback = function(state)
+        lookEnabled = state
+        if state and not lookConnection then startLook() end
+        if not state then stopConnections() end
+    end
+})
+
+local MusicTab = Window:Tab({
+    Title = "Music",
+    Icon = "bird",
+    Locked = false,
+})
+
+local SoundService = game:GetService("SoundService")
+
+local music1 = Instance.new("Sound")
+music1.SoundId = "rbxassetid://107990547300911"
+music1.Volume = 1
+music1.Looped = true
+music1.Parent = SoundService
+MusicTab:Toggle({
+    Title = "Cause and Effect",
+    Value = false,
+    Callback = function(state)
+        if state then music1:Play() else music1:Stop() end
+    end
+})
+
+local music2 = Instance.new("Sound")
+music2.SoundId = "rbxassetid://76463442516219"
+music2.Volume = 1
+music2.Looped = true
+music2.Parent = SoundService
+MusicTab:Toggle({
+    Title = "Forest of Death (Audio May Be Bugged)",
+    Value = false,
+    Callback = function(state)
+        if state then music2:Play() else music2:Stop() end
+    end
+})
+
+local music3 = Instance.new("Sound")
+music3.SoundId = "rbxassetid://75544352326610"
+music3.Volume = 1
+music3.Looped = true
+music3.Parent = SoundService
+MusicTab:Toggle({
+    Title = "Backrooms",
+    Value = false,
+    Callback = function(state)
+        if state then music3:Play() else music3:Stop() end
+    end
+})
+
+local music4 = Instance.new("Sound")
+music4.SoundId = "rbxassetid://6910191685"
+music4.Volume = 1
+music4.Looped = true
+music4.Parent = SoundService
+MusicTab:Toggle({
+    Title = "?",
+    Value = false,
+    Callback = function(state)
+        if state then music4:Play() else music4:Stop() end
+    end
+})
+
+local music5 = Instance.new("Sound")
+music5.SoundId = "rbxassetid://1841771337"
+music5.Volume = 1
+music5.Looped = true
+music5.Parent = SoundService
+MusicTab:Toggle({
+    Title = "Awakening",
+    Value = false,
+    Callback = function(state)
+        if state then music5:Play() else music5:Stop() end
+    end
+})
+
+local music6 = Instance.new("Sound")
+music6.SoundId = "rbxassetid://115877769571526"
+music6.Volume = 1
+music6.Looped = true
+music6.Parent = SoundService
+MusicTab:Toggle({
+    Title = "Compass",
+    Value = false,
+    Callback = function(state)
+        if state then music6:Play() else music6:Stop() end
+    end
+})
+
+local Tab = Window:Tab({
+    Title = "Settings",
+    Icon = "settings",
+    Locked = false,
+})
+
+local themeValues = {}
+for name, _ in pairs(WindUI:GetThemes()) do
+    table.insert(themeValues, name)
+end
+
+Tab:Dropdown({
+    Title = "Change UI Theme",
+    Multi = false,
+    AllowNone = false,
+    Value = nil,
+    Values = themeValues,
+    Callback = function(theme)
+        WindUI:SetTheme(theme)
+    end
+})
